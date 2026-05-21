@@ -39,6 +39,7 @@ function AppContent(): JSX.Element {
           element={
             <Layout
               title="CutTo"
+              isDemo={user.isDemo}
               onSignOut={signOut}
             >
               <DashboardScreen user={user} />
@@ -50,6 +51,7 @@ function AppContent(): JSX.Element {
           element={
             <Layout
               title="CutTo — Editor"
+              isDemo={user.isDemo}
               onSignOut={signOut}
             >
               <EditorScreen />

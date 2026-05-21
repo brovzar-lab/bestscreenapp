@@ -4,10 +4,11 @@ import DemoBadge from './DemoBadge';
 
 interface ToolbarProps {
   title: string;
+  isDemo?: boolean;
   onSignOut: () => void;
 }
 
-export default function Toolbar({ title, onSignOut }: ToolbarProps): JSX.Element {
+export default function Toolbar({ title, isDemo, onSignOut }: ToolbarProps): JSX.Element {
   const { zoom, setZoom, mode, setMode, toggleSidebar } = useUIStore();
 
   return (
@@ -58,7 +59,7 @@ export default function Toolbar({ title, onSignOut }: ToolbarProps): JSX.Element
           </button>
         </div>
 
-        {isDemoMode && <DemoBadge />}
+        {isDemo && <DemoBadge />}
 
         <button
           onClick={onSignOut}
