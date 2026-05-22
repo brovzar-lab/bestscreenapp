@@ -1,39 +1,35 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useScript } from '../hooks/useScript';
 import { useEditorStore } from '../store/editorStore';
 import { useUIStore } from '../store/uiStore';
-import type { ScriptBlock } from '../types/screenplay';
-
-const ELEMENT_CLASSES: Record<string, string> = {
-  'scene-heading': 'uppercase font-bold text-white tracking-wider',
-  action: 'text-brand-200',
-  character: 'uppercase font-semibold text-white pl-32',
-  parenthetical: 'italic text-brand-400 pl-24',
-  dialogue: 'text-brand-100 pl-16 pr-16',
-  transition: 'uppercase text-right text-brand-400 font-semibold',
-  shot: 'uppercase font-semibold text-brand-300',
-  general: 'text-brand-400 italic',
-};
-
-function BlockView({ block }: { block: ScriptBlock }): JSX.Element {
-  return (
-    <div className={`mb-3 leading-relaxed text-sm ${ELEMENT_CLASSES[block.type] ?? ''}`}>
-      {block.text}
-    </div>
-  );
-}
+import ScreenplayEditor from '../components/editor/ScreenplayEditor';
+import FindReplaceBar from '../components/editor/FindReplaceBar';
+import SceneNavigator from '../components/panels/SceneNavigator';
+import BeatBoardView from '../components/panels/BeatBoardView';
+import CharacterRegistry from '../components/panels/CharacterRegistry';
+import VersionHistory from '../components/panels/VersionHistory';
 
 export default function EditorScreen(): JSX.Element {
   const { scriptId } = useParams<{ scriptId: string }>();
   const navigate = useNavigate();
   const { data: script, isLoading } = useScript(scriptId);
-  const { setActiveScript } = useEditorStore();
-  const zoom = useUIStore((s) => s.zoom);
+  const { setActiveScript, saveVersion, isDirty } = useEditorStore();
+  const { sidebarOpen, mode } = useUIStore();
+  const [findOpen, setFindOpen] = useState(false);
 
   useEffect(() => {
     if (script) setActiveScript(script);
   }, [script, setActiveScript]);
+
+  // Auto-save version every 2 minutes when dirty
+  useEffect(() => {
+    if (!isDirty) return;
+    const timer = setTimeout(() => saveVersion(), 120_000);
+    return () => clearTimeout(timer);
+  }, [isDirty, saveVersion]);
+
+  const openFindReplace = useCallback(() => setFindOpen(true), []);
 
   if (isLoading) {
     return (
@@ -57,18 +53,45 @@ export default function EditorScreen(): JSX.Element {
     );
   }
 
+  // Beat Board mode shows full-screen card view
+  if (mode === 'cards') {
+    return (
+      <div className="h-full flex flex-col">
+        {findOpen && <FindReplaceBar onClose={() => setFindOpen(false)} />}
+        <BeatBoardView />
+      </div>
+    );
+  }
+
+  // Sidebar panel based on mode
+  const SidebarPanel = mode === 'outline' ? (
+    <div className="h-full flex flex-col overflow-hidden">
+      <SceneNavigator />
+      <div className="border-t border-brand-800">
+        <CharacterRegistry />
+      </div>
+    </div>
+  ) : (
+    <div className="h-full flex flex-col overflow-hidden">
+      <SceneNavigator />
+      <div className="border-t border-brand-800 flex-1 overflow-hidden">
+        <VersionHistory />
+      </div>
+    </div>
+  );
+
   return (
-    <div className="h-full overflow-auto bg-brand-950 flex justify-center py-8 px-4">
-      <div
-        className="bg-paper w-full max-w-2xl rounded shadow-2xl p-12 font-mono text-sm"
-        style={{ fontSize: `${zoom / 100}em` }}
-      >
-        <div className="text-center mb-10 font-bold text-brand-900 text-base tracking-widest uppercase">
-          {script.titlePage.title}
-        </div>
-        {script.blocks.map((block) => (
-          <BlockView key={block.id} block={block} />
-        ))}
+    <div className="h-full flex flex-col overflow-hidden">
+      {findOpen && <FindReplaceBar onClose={() => setFindOpen(false)} />}
+      <div className="flex flex-1 min-h-0">
+        {sidebarOpen && (
+          <aside className="w-56 bg-brand-900 border-r border-brand-800 overflow-hidden shrink-0">
+            {SidebarPanel}
+          </aside>
+        )}
+        <main className="flex-1 overflow-hidden">
+          <ScreenplayEditor onOpenFindReplace={openFindReplace} />
+        </main>
       </div>
     </div>
   );

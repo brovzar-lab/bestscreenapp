@@ -8,3 +8,38 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+@media print {
+  /* Hide all UI chrome, show only the screenplay paper */
+  header,
+  aside,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+  }
+
+  /* Expand the screenplay paper to fill the page */
+  .bg-brand-950,
+  main,
+  #root {
+    background: white !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  [class*='bg-paper'],
+  .bg-paper {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+    padding: 1in 1.5in !important;
+  }
+
+  /* Force dark text for printing */
+  [data-block-id] {
+    color: black !important;
+  }
+}

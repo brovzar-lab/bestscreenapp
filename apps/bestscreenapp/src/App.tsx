@@ -1,7 +1,9 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useAuth } from './hooks/useAuth';
+import { useUIStore } from './store/uiStore';
 import AuthScreen from './screens/AuthScreen';
 import DashboardScreen from './screens/DashboardScreen';
 import EditorScreen from './screens/EditorScreen';
@@ -10,6 +12,19 @@ import Layout from './components/Layout';
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5 } },
 });
+
+function ThemeSync(): null {
+  const theme = useUIStore((s) => s.theme);
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [theme]);
+  return null;
+}
 
 function AppContent(): JSX.Element {
   const { user, loading, signInWithGoogle, signOut, continueAsDemo } = useAuth();
@@ -52,6 +67,7 @@ function AppContent(): JSX.Element {
             <Layout
               title="CutTo — Editor"
               isDemo={user.isDemo}
+              isEditor
               onSignOut={signOut}
             >
               <EditorScreen />
@@ -67,6 +83,7 @@ function AppContent(): JSX.Element {
 export default function App(): JSX.Element {
   return (
     <QueryClientProvider client={queryClient}>
+      <ThemeSync />
       <AppContent />
       <Toaster
         position="bottom-right"
