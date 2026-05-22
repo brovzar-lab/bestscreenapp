@@ -8,7 +8,7 @@ export function useScripts(userId: string | undefined) {
     queryKey: ['scripts', userId],
     enabled: !!userId,
     queryFn: async (): Promise<Script[]> => {
-      if (isDemoMode) return [DEMO_SCRIPT];
+      if (isDemoMode || userId === 'demo') return [DEMO_SCRIPT];
       const { db } = await import('../lib/firebase');
       const { collection, query, where, orderBy, getDocs } = await import('firebase/firestore');
       if (!db) return [];
@@ -28,7 +28,7 @@ export function useScript(scriptId: string | undefined) {
     queryKey: ['script', scriptId],
     enabled: !!scriptId,
     queryFn: async (): Promise<Script | null> => {
-      if (isDemoMode) return DEMO_SCRIPT;
+      if (isDemoMode || scriptId === 'demo-script-001') return DEMO_SCRIPT;
       const { db } = await import('../lib/firebase');
       const { doc, getDoc } = await import('firebase/firestore');
       if (!db || !scriptId) return null;
