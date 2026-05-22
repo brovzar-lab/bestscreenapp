@@ -1,0 +1,33 @@
+name: Deploy to Vercel Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (monorepo root, includes dev)
+        run: npm install --include=dev
+
+      - name: Build bestscreenapp
+        run: cd apps/bestscreenapp && npm run build
+
+      - name: Deploy to Vercel production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          mkdir -p apps/bestscreenapp/.vercel
+          echo '{"projectId":"'$VERCEL_PROJECT_ID'","orgId":"'$VERCEL_ORG_ID'"}' > apps/bestscreenapp/.vercel/project.json
+          cd apps/bestscreenapp
+          npx vercel --token $VERCEL_TOKEN --prod --yes --prebuilt 2>&1
