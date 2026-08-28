@@ -30,4 +30,4 @@ jobs:
           mkdir -p apps/bestscreenapp/.vercel
           echo '{"projectId":"'$VERCEL_PROJECT_ID'","orgId":"'$VERCEL_ORG_ID'"}' > apps/bestscreenapp/.vercel/project.json
           cd apps/bestscreenapp
-          npx vercel --token $VERCEL_TOKEN --prod --yes --prebuilt 2>&1
+          npx vercel --token $VERCEL_TOKEN --prod --yes 2>&1
